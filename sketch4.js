@@ -1,20 +1,31 @@
-const DIM = 20
+let VIEW = 20
 const CANVAS = 900
 let error_tile = {}
 const availableImgs = new Set()
 const tiles = []
-let gridIndex = [] // GridPiece at x, y is at gridIndex[x][y]
+let gridIndex = {} // GridPiece at x, y is at gridIndex[x][y]
 
-const UNIT = CANVAS / DIM
+let UNIT = CANVAS / VIEW
 
 let adjacencyRules = { right: {}, top: {}}
 
 const BLANK = "img/blank.png"
+const LOCATION = {
+  x: 0,
+  y: 0
+}
+
+const TOTAL_DIM = {
+  x: VIEW,
+  y: VIEW
+}
+
 
 class GridPiece {
   possibleTiles = [];
   x;
   y;
+  fullEvaluate = false;
 
   constructor(x, y, possibleTiles) {
     this.x = x;
@@ -48,7 +59,7 @@ class GridPiece {
   }
   findNeighbours() {
     let neighbours = []
-    if (this.x > 0) {
+    if (this.x > LOCATION.x) {
       let leftPiece = gridIndex[this.x - 1][this.y]
       neighbours.push({
         piece: leftPiece,
@@ -56,7 +67,7 @@ class GridPiece {
       })
     }
 
-    if (this.x < DIM - 1) {
+    if (this.x < VIEW - 1 + LOCATION.x) {
       let rightPiece = gridIndex[this.x + 1][this.y]
       neighbours.push({
         piece: rightPiece,
@@ -64,7 +75,7 @@ class GridPiece {
       })
     }
 
-    if (this.y > 0) {
+    if (this.y > LOCATION.y) {
       let upPiece = gridIndex[this.x][this.y - 1]
       neighbours.push({
         piece: upPiece,
@@ -72,7 +83,7 @@ class GridPiece {
       })
     }
 
-    if (this.y < DIM - 1) {
+    if (this.y < VIEW - 1 + LOCATION.y) {
       let downPiece = gridIndex[this.x][this.y + 1]
       neighbours.push({
         piece: downPiece,
@@ -309,7 +320,7 @@ function loadTileMap(key) {
 
 function preload() {
   loadTileMap('tileMap')
-  // loadTileMap('tileMap-1')
+  //loadTileMap('tileMap-1')
 
   availableImgs.forEach(img => {
     tiles.push(new Tile(img, loadImage(img)))
@@ -330,27 +341,27 @@ function setup() {
   //let seed = 9531558 //DIM = 20
   // seed = 790277
   // seed = 7510908
-  seed = 7742019
+  //seed = 7742019
   console.log("Seed: " + seed)
   randomSeed(seed)
 
   createCanvas(CANVAS, CANVAS);
 
-  for (let x = 0; x < DIM; x++) {
+  for (let x = 0; x < VIEW; x++) {
     gridIndex[x] = {}
-    for (let y = 0; y < DIM; y++) {
+    for (let y = 0; y < VIEW; y++) {
       gridIndex[x][y] = new GridPiece(x, y, [...tiles])
     }
   }
 
-  let prefill = DIM / 2
+  let prefill = VIEW / 2
   prefill = 1
   for(let s = 0; s < prefill; s++) {
-    let gridX = parseInt(random(0, DIM));
-    let gridY = parseInt(random(0, DIM));
+    let gridX = parseInt(random(0, VIEW));
+    let gridY = parseInt(random(0, VIEW));
     let tile = parseInt(random(0, tiles.length));
   
-    gridIndex[gridX][gridY].onlyTile(tile)
+    gridIndex[0][0].onlyTile(tile)
   }
 
   // gridIndex[0][0].onlyTile(37)
@@ -363,68 +374,35 @@ function setup() {
 }
 
 function draw() {
-
-  for (let x = 0; x < DIM; x++) {
-    for (let y = 0; y < DIM; y++) {
+  translate(-LOCATION.x * UNIT, -LOCATION.y * UNIT);
+  for (let x = LOCATION.x; x < VIEW + LOCATION.x; x++) {
+    for (let y = LOCATION.y; y < VIEW + LOCATION.y; y++) {
       gridIndex[x][y].draw()
     }
   }  
-  // background(220);
-  // if (mouseIsPressed) {
-  //   fill(0);
-  // } else {
-  //   fill(255);
-  // }
-  // ellipse(mouseX, mouseY, 80, 80);
-
-  // background('#111');
-  // translate(CANVAS / 2, CANVAS / 2);
-  // rotate(PI / 180 * 45);
-  // imageMode(CENTER);
-  // image(img, 0, 0, 150, 150);
-
-  // reset()
-  // rotate(PI / 180 * -45);
-  // image(img, 0, 0, 150, 150);
-
 }
+
 let continueEvaluation = true
 function mousePressed(e) {
-  // console.log(e.button)
-  // calculateNext()
-  if (mouseButton === CENTER) {
-    continueEvaluation = !continueEvaluation 
-  } else if (mouseButton === LEFT) {
-    continueEvaluation = false
-    calculateOne()
-  }
-}
-
-function* piecesItr() {
-  while(true) {
-    for (let x = 0; x < DIM; x++) {
-      for (let y = 0; y < DIM; y++) {
-        yield gridIndex[x][y]
+  for (let x = LOCATION.x; x < VIEW + LOCATION.x; x++) {
+    for (let y = LOCATION.y; y < VIEW + LOCATION.y; y++) {
+      const p = gridIndex[x][y]
+      if(p.possibleTiles.length === 0
+          || p.possibleTiles[0] === error_tile) {
+        p.possibleTiles = [...tiles]
+        p.fullEvaluate = true;
       }
     }
-  }
-}
+  }  
 
-const PITR = piecesItr()
-
-function calculateNext() {
-  for (let x = 0; x < DIM; x++) {
-    for (let y = 0; y < DIM; y++) {
-      gridIndex[x][y].avaluate()
-    }
-  }
-
-  for (let x = DIM - 1; x >= 0; x--) {
-    for (let y = DIM - 1; y >= 0; y--) {
-      gridIndex[x][y].avaluate()
-    }
-  }
-  // PITR.next().value.avaluate()
+  // console.log(e.button)
+  // calculateNext()
+  // if (mouseButton === CENTER) {
+  //   continueEvaluation = !continueEvaluation 
+  // } else if (mouseButton === LEFT) {
+  //   continueEvaluation = false
+  //   calculateOne()
+  // }
 }
 
 function calculateOneWithTimeout() {
@@ -439,8 +417,8 @@ let startTime = new Date()
 function calculateOne() {
   let targetPieces = new Set();
 
-  for (let x = 0; x < DIM; x++) {
-    for (let y = 0; y < DIM; y++) {
+  for (let x = LOCATION.x; x < VIEW + LOCATION.x; x++) {
+    for (let y = LOCATION.y; y < VIEW + LOCATION.y; y++) {
       const targetPiece = gridIndex[x][y]
       if(!targetPiece.isCollapsed()) {
         targetPieces.add(targetPiece)
@@ -494,6 +472,58 @@ function calculateOne() {
     //console.log(`anyChangeInEntropy: ${anyChangeInEntropy}. pieceWithLowestEntropy: `, pieceWithLowestEntropy)
     pieceWithLowestEntropy.forceRandomCollapse()
   }
+}
+
+function addMapRight() {
+  if(gridIndex[LOCATION.x + VIEW] === undefined) {
+    gridIndex[LOCATION.x + VIEW] = {}
+    for (let y = 0; y < TOTAL_DIM.y; y++) {
+      gridIndex[LOCATION.x + VIEW][y] = new GridPiece(LOCATION.x + VIEW, y, [...tiles])
+    }
+  }
+}
+
+function addMapDown() {
+  let y = LOCATION.y + VIEW
+
+  if(gridIndex[0][y] === undefined) {
+    for (let x = 0; x < TOTAL_DIM.x; x++) {
+      gridIndex[x][y] = new GridPiece(x, y, [...tiles])
+    }  
+  }  
+}
+
+function keyPressed() {
+  if (keyCode === LEFT_ARROW) {
+    if(LOCATION.x > 0) {
+      LOCATION.x--
+    }
+  } else if (keyCode === RIGHT_ARROW) {
+    addMapRight()
+    LOCATION.x++
+  } else if(keyCode === UP_ARROW) {
+    if(LOCATION.y > 0) {
+      LOCATION.y--
+    }
+  } else if (keyCode === DOWN_ARROW) {
+    addMapDown()
+    LOCATION.y++
+  } else if (keyCode === 107) {
+    if(LOCATION.x + VIEW < TOTAL_DIM.x && LOCATION.y + VIEW < TOTAL_DIM.y) {
+      VIEW++
+      UNIT = CANVAS / VIEW
+    }
+  } else if (keyCode === 109) {
+    if(VIEW > 2) {
+      VIEW--
+      UNIT = CANVAS / VIEW
+    }
+  }
+
+  TOTAL_DIM.x = max(TOTAL_DIM.x, LOCATION.x + VIEW)
+  TOTAL_DIM.y = max(TOTAL_DIM.y, LOCATION.y + VIEW)
+
+  // console.log(keyCode)
 }
 
 function compareTo(num1, num2) {

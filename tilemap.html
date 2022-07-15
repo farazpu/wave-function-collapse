@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tile tagger</title>
+  <script src="https://unpkg.com/vue@3"></script>
+  <style>
+
+    .map-tile {
+      display: inline-block;
+      height: 32px;
+      width: 32px;
+      /* border: 1px solid rgba(204, 204, 204, 0.239); */
+    }
+
+    .map-tile img {
+      width: 32px;
+      vertical-align: bottom;
+    }
+
+    .map {
+      width: 70%;
+      overflow: auto;
+      display: inline-block;
+    }
+
+    .palette {
+      width: 30%; 
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .palette>div {
+      display: inline-block;
+      padding: 3px;
+      border: 3px solid white;
+    }
+
+    .palette .selected-img {
+      border-color: red;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="map">
+      <div v-for="(i, x) in imgMap" style="white-space: nowrap;">
+        <div v-for="(j, y) in i" :class="{'map-tile': true}" @mousedown="drawImg(x, y)" @mousemove="drawImg(x, y, $event)">
+          <img :src="j" alt="">
+          <!-- <div style="position: absolute; font-size: 8px; color: white;">({{y}}, {{x}})</div> -->
+        </div>
+      </div>
+    </div>
+    <div class="palette">
+      <div style="display: block;">
+        Image Set: <select v-model.number="selectedImageSet" @change="loadSlot()">
+          <option value="0">default</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+        <hr>
+      </div>
+      <div v-for="(img, i) in imgs[selectedImageSet]" @click="selectedImg(i)" :class="{'selected-img': selectedImage == i}">
+        <img :src="img" style="width: 32px;">
+      </div>
+      <hr>
+      Save slot: <select v-model="saveSlot" @change="loadSlot()">
+        <option value="">default</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+
+      &nbsp;&nbsp;
+      <button @click="showData()">Show Data</button>
+      <div v-show="tileDataShow" style="display: block;">
+        <textarea style="width: 100%; height: 600px;" v-model="data"></textarea>
+      </div>      
+      </div>
+  </div>
+
+  <script src="tilemap.js"></script>
+</body>
+</html>

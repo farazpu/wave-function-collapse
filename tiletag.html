@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tile tagger</title>
+  <script src="https://unpkg.com/vue@3"></script>
+  <style>
+
+    .tile-info {
+      margin: 3px; 
+      display: inline-block;
+      border: 5px solid red;
+    }
+    
+    .matching-right {
+      border: 5px solid rgb(0, 250, 133);
+    }
+
+    .tile-action {
+      display: inline-block;
+      height: 16px;
+      width: 16px;
+      border: 1px solid black;
+    }
+
+    .tile-action-selected {
+      background-color: green;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <select v-model="matchMode">
+      <option value="right">Right</option>
+      <option value="top">Top</option>
+    </select>
+    &nbsp;&nbsp;
+    <button @click="showData()">Show Data</button>
+    &nbsp;&nbsp;
+    <div v-show="tileDataShow">
+      <textarea style="width: 100%; height: 800px;" v-model="data"></textarea>
+    </div>
+    <div v-for="img in imgs" style="padding: 10px;">
+      <table cellspacing="0" cellpadding="0" style="border-spacing: 0px; border-collapse: collapse;">
+        <tr v-show="matchMode === 'top'">
+          <td><img :src="imgToMatch[img]" alt="" height="64" style="vertical-align: bottom;"></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="vertical-align: top;"><img :src="img" alt="" height="64"> </td>
+          <td style="vertical-align: top;" v-show="matchMode === 'right'"><img :src="imgToMatch[img]" alt="" height="64"></td>
+          <td>
+            <!-- <div style="padding-left: 10px;">
+              Sides: <input @blur="saveTileSides()" v-model="tileSides[img]" type="text" style="display: inline-block; width: 50px;">
+            </div> -->
+            <div style="padding-left: 10px; cursor: pointer;" v-for="ta in availableTileActions" @click="tileActionToggle(img, ta)">
+              <div :class="{'tile-action': true, 'tile-action-selected': tileActions[img + '$$$' + ta]}"></div> {{ta}}
+            </div>
+            <div>{{img}}</div> 
+            <div>{{imgToMatch[img]}}</div> 
+          </td>
+          <td v-show="matchMode === 'right'">
+            <span v-for="imgi in imgs" :class="{'tile-info': true, 'matching-right': matchingRight[img + '$$$' + imgi]}" @click="toggleMatchingRight(img, imgi)">
+              <img :src="imgi" alt="" height="64"> 
+            </span>
+          </td>
+          <td v-show="matchMode === 'top'">
+            <span v-for="imgi in imgs" :class="{'tile-info': true, 'matching-right': matchingTop[img + '$$$' + imgi]}" @click="toggleMatchingTop(img, imgi)">
+              <img :src="imgi" alt="" height="64"> 
+            </span>
+          </td>
+        </tr>
+
+      </table>
+    </div>
+
+  </div>
+
+  <script src="tiletagger.js"></script>
+</body>
+</html>

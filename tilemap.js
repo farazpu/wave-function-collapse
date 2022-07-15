@@ -253,9 +253,7 @@ createApp({
   },
   data() {
     if(!localStorage.getItem('tileMap')) {
-      let imgMap = generateInitialData()
-
-      localStorage.setItem('tileMap', JSON.stringify(imgMap));
+      localStorage.setItem('tileMap', defaultData());
     }
 
     return {
